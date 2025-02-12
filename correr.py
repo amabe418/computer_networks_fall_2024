@@ -5,59 +5,6 @@ import sys
 import getopt
 import time
 
-def main():
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "H:p:n:c:a:", ["port=", "host=", "nick=", "command=", "argument="])
-    except getopt.GetoptError as err:
-        print(str(err))
-        sys.exit(2)
-
-    server_ip = None
-    port = None
-    nickname = None
-    command = None
-    argument = None
-    use_ssl = False
-
-    for opt, arg in opts:
-        if opt in ("-p", "--port"):
-            port = int(arg)
-        elif opt in ("-H", "--host"):
-            server_ip = arg
-        elif opt in ("-n", "--nick"):
-            nickname = arg
-        elif opt in ("-c", "--command"):
-            command = arg
-        elif opt in ("-a", "--argument"):
-            argument = arg
-
-
-    irc_client = IRCClient(server_ip, port, nickname, use_ssl)
-    irc_client.connect()
-
-    if irc_client.connected:
-        threading.Thread(target=irc_client.receive_messages, daemon=True).start()
-        
-        if command and argument:
-            user_input = f"{command} {argument}"
-            if user_input.startswith('/'):
-                irc_client.process_command(user_input)
-            else:
-                irc_client.send_message(user_input)
-        else:        
-            while irc_client.connected:
-             user_input = input() 
-             if user_input.startswith('/'):
-                irc_client.process_command(user_input)
-             else:
-                irc_client.send_message(user_input)
-
-    else:
-        print("no se pudo establecer conexion")
-
-if __name__ == "__main__":
-    main()
-
 
 
 class IRCClient:
@@ -380,3 +327,58 @@ class IRCClient:
                 self.connected = False
                 break
     
+
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "H:p:n:c:a:", ["port=", "host=", "nick=", "command=", "argument="])
+    except getopt.GetoptError as err:
+        print(str(err))
+        sys.exit(2)
+
+    server_ip = None
+    port = None
+    nickname = None
+    command = None
+    argument = None
+    use_ssl = False
+
+    for opt, arg in opts:
+        if opt in ("-p", "--port"):
+            port = int(arg)
+        elif opt in ("-H", "--host"):
+            server_ip = arg
+        elif opt in ("-n", "--nick"):
+            nickname = arg
+        elif opt in ("-c", "--command"):
+            command = arg
+        elif opt in ("-a", "--argument"):
+            argument = arg
+
+    
+    irc_client = IRCClient(server_ip, port, nickname, use_ssl)
+    irc_client.connect()
+
+    if irc_client.connected:
+        threading.Thread(target=irc_client.receive_messages, daemon=True).start()
+        
+        if command and argument:
+            user_input = f"{command} {argument}"
+            if user_input.startswith('/'):
+                irc_client.process_command(user_input)
+            else:
+                irc_client.send_message(user_input)
+        else:        
+            while irc_client.connected:
+             user_input = input() 
+             if user_input.startswith('/'):
+                irc_client.process_command(user_input)
+             else:
+                irc_client.send_message(user_input)
+
+    else:
+        print("no se pudo establecer conexion")
+
+if __name__ == "__main__":
+    main()
+
