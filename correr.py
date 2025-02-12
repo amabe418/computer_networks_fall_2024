@@ -1,6 +1,9 @@
 import socket
 import ssl
 import threading
+import sys
+import getopt
+import time
 
 class IRCClient:
     def __init__(self, server, port, nickname, use_ssl=True):
@@ -12,7 +15,8 @@ class IRCClient:
         
         self.sock = socket.create_connection((server, port))
         if use_ssl:
-            self.sock = ssl.wrap_socket(self.sock)
+            context = ssl.create_default_context()
+            self.sock = context.wrap_socket(self.sock, server_hostname=server)  
         
         self.send_raw(f'NICK {self.nickname}')
         self.send_raw(f'USER {self.nickname} 0 * :Python IRC Client')
@@ -22,22 +26,28 @@ class IRCClient:
     
     def change_nick(self, new_nick):
         self.send_raw(f'NICK {new_nick}')
+        print(f'Tu nuevo apodo es {new_nick}')
         self.nickname = new_nick
     
     def join_channel(self, channel):
         self.send_raw(f'JOIN {channel}')
+        print(f'Te has unido al canal {channel}')
     
     def part_channel(self, channel):
         self.send_raw(f'PART {channel}')
+        print(f'Has salido del canal {channel}')
     
     def send_message(self, target, message):
         self.send_raw(f'PRIVMSG {target} :{message}')
+        print(f'Mensaje de {self.nickname}: {message}')
     
     def send_notice(self, target, message):
         self.send_raw(f'NOTICE {target} :{message}')
+        print(f'Notificacion de {self.nickname}: {message}')
     
     def quit(self, message="Goodbye!"):
         self.send_raw(f'QUIT :{message}')
+        print("Desconectado del servidor")
         self.running = False
         self.sock.close()
     
@@ -66,13 +76,33 @@ class IRCClient:
         thread = threading.Thread(target=self.handle_server_response)
         thread.start()
 
-if __name__ == "__main__":
-    import sys
-    
-    server = "localhost"
-    port = 8080
-    nickname = "TestUser1"
-    
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "H:p:n:c:a:", ["port=", "host=", "nick=", "command=", "argument="])
+    except getopt.GetoptError as err:
+        print(str(err))
+        sys.exit(2)
+
+    server = None
+    port = None
+    nickname = None
+    command = None
+    argument = None
+    use_ssl = False
+
+    for opt, arg in opts:
+        if opt in ("-p", "--port"):
+            port = int(arg)
+        elif opt in ("-H", "--host"):
+            server_ip = arg
+        elif opt in ("-n", "--nick"):
+            nickname = arg
+        elif opt in ("-c", "--command"):
+            command = arg
+        elif opt in ("-a", "--argument"):
+            argument = arg
+
+
     client = IRCClient(server, port, nickname)
     client.start()
     
