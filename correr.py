@@ -168,7 +168,7 @@ class IRCClient:
         self.socket.sendall(f"MODE {channel} {mode}\r\n".encode())
         print(f"Has cambiado el modo de {channel} a {mode}")
     def send_notice(self, target, message):
-        self.socket.sendall(f"NOTICE {target} :{message}\r\n".encode())
+        self.socket.sendall(message.encode('utf-8') + b'\r\n')
         print(f"Notificacion de {self.nickname}: {target} {message}")  # Muestra el mensaje que envías
     def list_channels(self):
         self.socket.sendall("LIST\r\n".encode())
